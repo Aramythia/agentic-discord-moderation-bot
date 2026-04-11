@@ -25,5 +25,4 @@
 - Add error handling and structured logging (no print statements)
 - Follow async patterns in Discord-related operations
 
-See [README.md](README.md) for setup and environment details.</content>
-<parameter name="filePath">c:\Users\sebas\OneDrive\Python_Projects\agentic-discord-moderation-bot\.github\copilot-instructions.md
+See [README.md](README.md) for setup and environment details.
