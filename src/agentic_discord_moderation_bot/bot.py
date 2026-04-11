@@ -1,34 +1,20 @@
 import discord
 import os
 from dotenv import load_dotenv
+from agentic_discord_moderation_bot.AgentBot import AgentBot
 
 # Load environment variables
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+DEBUG_GUILDS_RAW = os.getenv('DEBUG_GUILDS', '')
+DEBUG_GUILDS = [int(guild_id) for guild_id in DEBUG_GUILDS_RAW.split(',') if guild_id.strip()] or None
 
-# Create bot instance
-bot = discord.Bot()
+init_cogs = ["cogs.query"]
+bot = AgentBot(cogs=init_cogs, intents=discord.Intents.all(), debug_guilds=DEBUG_GUILDS)
 
-# Slash command: ping
-@bot.slash_command(guild_ids=[331126066850824192], description="Ping the bot to check if it's online")
+@bot.slash_command(description="Ping the bot to check if it's online")
 async def ping(ctx):
     await ctx.respond("Pong!")
-
-# Message listener skeleton
-@bot.listen('on_message')
-async def on_message(message):
-    # Ignore messages from the bot itself
-    if message.author == bot.user:
-        return
-
-    # TODO: Add your agentic AI logic here
-    # This is where you would process messages and respond with LangChain/LangGraph
-    print(f"Message from {message.author}: {message.content}")
-
-    # Example: You could trigger AI responses based on message content
-    # if some_condition:
-    #     response = await generate_ai_response(message.content)
-    #     await message.channel.send(response)
 
 # Run the bot
 if __name__ == "__main__":
