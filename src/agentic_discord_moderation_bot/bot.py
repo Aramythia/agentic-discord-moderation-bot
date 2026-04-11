@@ -6,7 +6,8 @@ from agentic_discord_moderation_bot.AgentBot import AgentBot
 # Load environment variables
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-DEBUG_GUILDS = os.getenv('DEBUG_GUILDS', '').split(',')
+DEBUG_GUILDS_RAW = os.getenv('DEBUG_GUILDS', '')
+DEBUG_GUILDS = [int(guild_id) for guild_id in DEBUG_GUILDS_RAW.split(',') if guild_id.strip()] or None
 
 init_cogs = ["cogs.query"]
 bot = AgentBot(cogs=init_cogs, intents=discord.Intents.all(), debug_guilds=DEBUG_GUILDS)
