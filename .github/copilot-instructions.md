@@ -16,7 +16,7 @@
 
 ## Build and Test
 - Install: `uv sync`
-- Run: `uv run python bot.py`
+- Run: `uv run python src/agentic_discord_moderation_bot/bot.py`
 - Test: `uv run pytest` (no tests yet, add async fixtures for bot components)
 - Add packages: `uv add <package>` or `uv add --dev <package>`
 
