@@ -1,10 +1,13 @@
 import discord
 from typing import List
 
+from agentic_discord_moderation_bot.utils.aiservices import AIService
+
 
 class AgentBot(discord.Bot):
-    def __init__(self, cogs: List[str] = None, *args, **kwargs):
+    def __init__(self, cogs: List[str] = None, ai: AIService = None, *args, **kwargs):
         self.init_cogs = cogs or []
+        self.ai = ai or AIService()
         super().__init__(*args, **kwargs)
 
         for cog in self.init_cogs:
