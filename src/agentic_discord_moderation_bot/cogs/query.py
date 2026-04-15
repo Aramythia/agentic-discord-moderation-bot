@@ -27,7 +27,7 @@ class Query(commands.Cog):
         await ctx.defer()
         result = await self.query_agent.ainvoke(
             {"messages": [HumanMessage(content=question)]},
-            config={"recursion_limit": 3, "configurable": {"ctx": ctx}},
+            config={"recursion_limit": 10, "configurable": {"ctx": ctx}},
         )
         response = result["messages"][-1].content if result.get("messages") else "No response generated."
         await ctx.respond(response)
