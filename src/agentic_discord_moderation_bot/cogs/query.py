@@ -6,13 +6,13 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from agentic_discord_moderation_bot.utils.AgentBot import AgentBot
-from agentic_discord_moderation_bot.utils.tools import get_user_history
+from agentic_discord_moderation_bot.utils.tools import get_user_history, get_context
 
 class Query(commands.Cog):
     def __init__(self, bot: AgentBot):
         self.bot = bot
-        self.tools = [get_user_history]
-        self.llm_with_tools = self.bot.ai.llm.bind_tools([get_user_history])
+        self.tools = [get_user_history, get_context]
+        self.llm_with_tools = self.bot.ai.llm.bind_tools([get_user_history, get_context])
         self.tool_map = {t.name: t for t in self.tools}
 
         prompt = ChatPromptTemplate.from_messages([
