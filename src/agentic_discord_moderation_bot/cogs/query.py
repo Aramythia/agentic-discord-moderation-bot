@@ -1,34 +1,12 @@
-from pprint import pprint
-from typing import Annotated, List
-
 import discord
 from discord.ext import commands
 
 from langchain.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.tools import tool, InjectedToolArg
-
-from pydantic import BaseModel, Field
 
 from agentic_discord_moderation_bot.utils.AgentBot import AgentBot
-
-
-class UserHistory(BaseModel):
-    user_id: int = Field(description="An 18-digit integer representing the ID of the user to get history for")
-
-
-@tool(args_schema=UserHistory)
-async def get_user_history(ctx: Annotated[discord.ApplicationContext, InjectedToolArg], user_id: int) -> List[str]:
-    """Get the last 5 messages from a user in the server."""
-    messages = []
-    async for msg in ctx.channel.history(limit=50):
-        if msg.author.id == user_id:
-            messages.append(msg.content)
-            if len(messages) == 5:
-                break
-    return messages
-
+from agentic_discord_moderation_bot.utils.tools import get_user_history
 
 class Query(commands.Cog):
     def __init__(self, bot: AgentBot):
