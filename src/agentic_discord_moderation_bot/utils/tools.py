@@ -1,8 +1,9 @@
-from typing import Annotated, List
+from typing import List
 
 import discord
 
-from langchain_core.tools import tool, InjectedToolArg
+from langchain_core.runnables import RunnableConfig
+from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
 
@@ -11,8 +12,9 @@ class UserHistory(BaseModel):
 
 
 @tool(args_schema=UserHistory)
-async def get_user_history(ctx: Annotated[discord.ApplicationContext, InjectedToolArg], user_id: int) -> List[str]:
+async def get_user_history(user_id: int, config: RunnableConfig) -> List[str]:
     """Get the last 5 messages from a user in the server."""
+    ctx: discord.ApplicationContext = config["configurable"]["ctx"]
     messages = []
     async for msg in ctx.channel.history(limit=50):
         if msg.author.id == user_id:
@@ -23,7 +25,7 @@ async def get_user_history(ctx: Annotated[discord.ApplicationContext, InjectedTo
 
 
 @tool
-async def get_context(ctx: Annotated[discord.ApplicationContext, InjectedToolArg]) -> str:
+async def get_context(config: RunnableConfig) -> str:
     """Get context surrounding the query: who asked it, and where. Returns a dictionary.
     
     Relevant Vocabulary:
@@ -31,6 +33,7 @@ async def get_context(ctx: Annotated[discord.ApplicationContext, InjectedToolArg
     - channel: the channel the query was triggered in; Keys: channel_name, channel_id, channel_topic, channel_is_nsfw
     - guild: the server the query was triggered in; Keys: guild_name, guild_id
     """
+    ctx: discord.ApplicationContext = config["configurable"]["ctx"]
     return {
         "author_name": ctx.author.display_name,
         "author_user_id": ctx.author.id,
