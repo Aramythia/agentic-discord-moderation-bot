@@ -1,7 +1,7 @@
 import discord
 import os
 from dotenv import load_dotenv
-from agentic_discord_moderation_bot.AgentBot import AgentBot
+from agentic_discord_moderation_bot.utils.AgentBot import AgentBot
 
 # Load environment variables
 load_dotenv()
