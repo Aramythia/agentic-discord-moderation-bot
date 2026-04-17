@@ -4,12 +4,32 @@ import discord
 
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
-from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun
-from langchain_community.utilities import WikipediaAPIWrapper
+from langchain_community.tools import DuckDuckGoSearchResults, WikipediaQueryRun
+from langchain_community.utilities import DuckDuckGoSearchAPIWrapper, WikipediaAPIWrapper
 from pydantic import BaseModel, Field
 
-ddg_tool = DuckDuckGoSearchRun()
-wikipedia_query_tool = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+_ddg_wrapper = DuckDuckGoSearchAPIWrapper(safesearch="off")
+ddg_tool = DuckDuckGoSearchResults(
+    description=(
+        "A wrapper around DuckDuckGo search - a web search tool. "
+        "Input is a plaintext string search query."
+        "Use this tool if the user query is trying to 'google' something or "
+        "search the web with any generic search engine."
+        "Use this tool to get current information from the internet, "
+        "e.g. specific video game details, recent events, restaurant reviews, etc. "
+    ),
+    api_wrapper=_ddg_wrapper,
+    output_format="list",
+)
+wikipedia_query_tool = WikipediaQueryRun(
+    api_wrapper=WikipediaAPIWrapper(),
+    description=(
+        "A tool to query Wikipedia for factual or encyclopedic information. "
+        "Prefer this tool for reliable and well-sourced information, "
+        "especially topics with high 'cultural capital', "
+        "e.g. historical events, scientific concepts, notable figures, etc. "
+    )
+)
 
 
 class UserHistory(BaseModel):
