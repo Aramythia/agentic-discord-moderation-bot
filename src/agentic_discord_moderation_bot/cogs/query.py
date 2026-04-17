@@ -5,13 +5,13 @@ from langchain.agents import create_agent
 from langchain.messages import HumanMessage, SystemMessage, ToolMessage
 
 from agentic_discord_moderation_bot.utils.AgentBot import AgentBot
-from agentic_discord_moderation_bot.utils.tools import get_user_history, get_context, create_invite
+from agentic_discord_moderation_bot.utils.tools import get_user_history, get_context, create_invite, wikipedia_query_tool
 
 
 class Query(commands.Cog):
     def __init__(self, bot: AgentBot):
         self.bot = bot
-        self.tools = [get_user_history, get_context, create_invite]
+        self.tools = [get_user_history, get_context, create_invite, wikipedia_query_tool]
         self.query_agent = create_agent(
             self.bot.ai.llm,
             tools=self.tools,
