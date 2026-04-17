@@ -4,11 +4,11 @@ import discord
 
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
-from langchain_community.tools import WikipediaQueryRun
+from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
 from pydantic import BaseModel, Field
 
-
+ddg_tool = DuckDuckGoSearchRun()
 wikipedia_query_tool = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
 
 

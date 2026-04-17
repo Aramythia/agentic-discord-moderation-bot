@@ -15,7 +15,8 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "langchain-anthropic>=1.4.0",
     "langchain-community>=0.4.1",
-    "wikipedia>=1.4.0"
+    "wikipedia>=1.4.0",
+    "ddgs>=9.14.0",
 ]
 
 [project.optional-dependencies]
