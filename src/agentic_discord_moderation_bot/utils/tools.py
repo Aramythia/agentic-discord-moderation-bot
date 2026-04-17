@@ -12,7 +12,7 @@ class UserHistory(BaseModel):
 
 
 @tool(args_schema=UserHistory)
-async def get_user_history(user_id: int, config: RunnableConfig) -> List[Dict[str, str]]:
+async def get_user_history(config: RunnableConfig, user_id: int) -> List[Dict[str, str]]:
     """Get the last 10 messages from a user in the server. Returns a list of dictionaries.
     
     Each dictionary represents a message and has the following content information:
@@ -56,4 +56,32 @@ async def get_context(config: RunnableConfig) -> Dict[str, str]:
         "channel_is_nsfw": ctx.channel.is_nsfw(),
         "guild_name": ctx.guild.name,
         "guild_id": ctx.guild_id,
+    }
+
+
+class InviteParams(BaseModel):
+    age: int = Field(
+        description=(
+            "After creation, the invite link will expire after this many seconds."), 
+        gt=0,
+        lt=604800,  # 7 days is 604800 seconds
+        default=86400  # 24 hours is 86400 seconds
+    )
+    uses: int = Field(
+        description="The maximum number of uses for the invite link.", 
+        gt=0,
+        lt=25,  # Arbitrary upper limit to prevent abuse
+        default=5
+    )
+
+
+@tool(args_schema=InviteParams)
+async def create_invite(config: RunnableConfig, age: int, uses: int) -> str:
+    """Create an invite link for the channel the query was triggered in. Returns the invite URL as a string as well as the time it expires and the maximum number of uses."""
+    ctx: discord.ApplicationContext = config["configurable"]["ctx"]
+    invite = await ctx.channel.create_invite(max_age=age, max_uses=uses)
+    return {
+        "url": invite.url,
+        "max_age": invite.expires_at if invite.expires_at else None,
+        "max_uses": invite.max_uses,
     }
