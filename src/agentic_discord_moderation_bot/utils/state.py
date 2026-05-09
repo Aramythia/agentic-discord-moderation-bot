@@ -1,13 +1,15 @@
 import discord
+from typing import Optional
 from langgraph.graph import MessagesState
 
-from agentic_discord_moderation_bot.utils.model import ModerationFlag
+from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDecision
 
 
 class BasicBotState(MessagesState):
     message_ctx: discord.Message
-    moderation_flag: ModerationFlag
-    is_question: bool
-    needs_internet: bool
-    is_command: bool
-    response: str
+    moderation_flag: Optional[ModerationFlag]
+    triage_result: Optional[TriageDecision]
+    is_question: Optional[bool]
+    needs_internet: Optional[bool]
+    is_command: Optional[bool]
+    response: Optional[str]
