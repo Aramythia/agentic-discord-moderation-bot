@@ -15,10 +15,10 @@ class Reader(commands.Cog):
         if message.author == self.bot.user:
             return
         
-        print(f"Message from {message.author}: {message.content}")
         result = await self.graph.ainvoke({"message_ctx": message})
-        print(result)
-        await message.reply(result["response"])
+        if "response" in result:
+            await message.reply(result["response"])
+        print("="*40, "\n", f"Message from {message.author}: {message.content}", "\n", result, "\n", "="*40)
         
 
 def setup(bot: discord.Bot):
