@@ -1,8 +1,6 @@
 import discord
 from discord.ext import commands
 
-from langgraph.checkpoint.memory import MemorySaver
-
 from agentic_discord_moderation_bot.utils.AgentBot import AgentBot
 from agentic_discord_moderation_bot.utils.graph import create_graph
 
@@ -10,7 +8,7 @@ from agentic_discord_moderation_bot.utils.graph import create_graph
 class Reader(commands.Cog):
     def __init__(self, bot: AgentBot):
         self.bot = bot
-        self.graph = create_graph(bot.ai.llm, checkpointer=MemorySaver())
+        self.graph = create_graph(bot.ai.llm)
         print(self.graph.get_graph().draw_mermaid())
 
     @commands.Cog.listener()

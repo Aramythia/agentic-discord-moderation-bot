@@ -5,6 +5,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_tavily import TavilySearch
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
 
@@ -20,7 +21,12 @@ from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDec
 # synthesize_response - generates a response to the user based on the current state
 
 
-def create_graph(llm: BaseChatModel, checkpointer=None) -> CompiledStateGraph:
+def create_graph(llm: BaseChatModel, checkpointer: MemorySaver | None = None) -> CompiledStateGraph:
+    if checkpointer is None:
+        checkpointer = MemorySaver(allowed_msgpack_modules=[
+            ("agentic_discord_moderation_bot.utils.model", "ModerationFlag"),
+            ("agentic_discord_moderation_bot.utils.model", "TriageDecision"),
+        ])
     """Build and compile the moderation graph with the given LLM.
 
     Parameters
