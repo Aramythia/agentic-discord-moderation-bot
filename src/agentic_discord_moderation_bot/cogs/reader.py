@@ -9,6 +9,7 @@ class Reader(commands.Cog):
     def __init__(self, bot: AgentBot):
         self.bot = bot
         self.graph = create_graph(bot.ai.llm)
+        print(self.graph.get_graph().draw_mermaid())
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
