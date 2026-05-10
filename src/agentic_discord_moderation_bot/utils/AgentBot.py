@@ -19,9 +19,3 @@ class AgentBot(discord.Bot):
 
     async def on_ready(self):
         print(f"{self.user} has connected to Discord!")
-
-    async def on_message(self, message: discord.Message):
-        if message.author == self.user:
-            return
-        
-        print(f"Message from {message.author}: {message.content}")

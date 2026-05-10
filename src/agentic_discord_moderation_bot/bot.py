@@ -9,7 +9,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 DEBUG_GUILDS_RAW = os.getenv('DEBUG_GUILDS', '')
 DEBUG_GUILDS = [int(guild_id) for guild_id in DEBUG_GUILDS_RAW.split(',') if guild_id.strip()] or None
 
-init_cogs = ["cogs.query"]
+init_cogs = ["cogs.query", "cogs.reader"]
 bot = AgentBot(cogs=init_cogs, intents=discord.Intents.all(), debug_guilds=DEBUG_GUILDS)
 
 @bot.slash_command(description="Ping the bot to check if it's online")
