@@ -12,7 +12,7 @@ class Reader(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.author == self.bot.user:
+        if message.author == self.bot.user or message.author.bot:
             return
         
         result = await self.graph.ainvoke({"messages": [message.content], "message_ctx": message})
