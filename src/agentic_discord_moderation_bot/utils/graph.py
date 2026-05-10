@@ -3,6 +3,7 @@ from typing import Literal
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
@@ -46,8 +47,8 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
         )
 
 
-    async def moderation_check(state: BasicBotState) -> BasicBotState:
-        message_content = state["message_ctx"].content
+    async def moderation_check(state: BasicBotState, config: RunnableConfig) -> BasicBotState:
+        message_content = state["messages"][-1].content
         system = SystemMessage(
             content=(
                 "You are a Discord moderation assistant. "
@@ -63,7 +64,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
         return "synthesize_response" if flag.verdict == "flagged" else "triage"
 
 
-    async def triage(state: BasicBotState) -> dict:
+    async def triage(state: BasicBotState, config: RunnableConfig) -> dict:
         system = SystemMessage(
             content=(
                 "You are a Discord bot assistant named Ganyu. A message has passed moderation and needs routing. "
@@ -79,7 +80,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
             )
         )
         result: TriageDecision = await triage_llm.ainvoke(
-            [system, HumanMessage(content=state["message_ctx"].content)]
+            [system, HumanMessage(content=state["messages"][-1].content)]
         )
         return {"triage_result": result}
 
@@ -96,7 +97,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
         state_summary = {
             k: (v.model_dump() if hasattr(v, "model_dump") else v)
             for k, v in state.items()
-            if k not in ("message_ctx", "messages")
+            if k != "messages"
         }
         system = SystemMessage(
             content=(

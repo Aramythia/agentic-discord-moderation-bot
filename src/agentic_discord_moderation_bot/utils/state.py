@@ -1,4 +1,3 @@
-import discord
 from typing import Optional
 from langgraph.graph import MessagesState
 
@@ -6,7 +5,6 @@ from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDec
 
 
 class BasicBotState(MessagesState):
-    message_ctx: discord.Message
     moderation_flag: Optional[ModerationFlag]
     triage_result: Optional[TriageDecision]
     is_question: Optional[bool]

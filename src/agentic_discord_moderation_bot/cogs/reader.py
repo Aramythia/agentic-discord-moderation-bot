@@ -16,7 +16,10 @@ class Reader(commands.Cog):
         if message.author == self.bot.user or message.author.bot:
             return
         
-        result = await self.graph.ainvoke({"messages": [message.content], "message_ctx": message})
+        result = await self.graph.ainvoke(
+                {"messages": [message.content]},
+                config={"configurable": {"message_ctx": message}},
+            )
         if "response" in result:
             await message.reply(result["response"])
         print("="*40, "\n", f"Message from {message.author}: {message.content}", "\n", result, "\n", "="*40)
