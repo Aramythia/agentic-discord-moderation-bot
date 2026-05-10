@@ -3,12 +3,13 @@ from typing import Literal
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_tavily import TavilySearch
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
 
 from agentic_discord_moderation_bot.utils.state import BasicBotState
 from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDecision
-from agentic_discord_moderation_bot.utils.tools import ddg_tool, wikipedia_query_tool
+from agentic_discord_moderation_bot.utils.tools import wikipedia_query_tool
 
 
 # Functions
@@ -36,7 +37,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
     triage_llm = llm.with_structured_output(TriageDecision)
     questions_agent = create_agent(
             llm,
-            tools=[ddg_tool, wikipedia_query_tool],
+            tools=[TavilySearch(max_results=3), wikipedia_query_tool],
             system_prompt=(
                 "You are a helpful assistant tasked with answering general questions. "
                 "Provide concise and accurate responses, using tools when necessary. "
@@ -94,21 +95,22 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
 
 
     def synthesize_response(state: BasicBotState) -> BasicBotState:
+        state_summary = {
+            k: (v.model_dump() if hasattr(v, "model_dump") else v)
+            for k, v in state.items()
+            if k not in ("message_ctx", "messages")
+        }
         system = SystemMessage(
             content=(
                 "You are a Discord moderation assistant. "
-                "Generate a concise, friendly reply to send to the user based on the context below. "
+                "Generate a concise, friendly reply to send to the user based on the conversation and state below. "
                 "If the message was flagged as a violation, explain the issue politely. "
-                "Otherwise, respond helpfully to their message."
+                "Otherwise, respond helpfully to their message. "
+                "Do not be eager. Don't ask for followup. Just answer the question.\n\n"
+                f"State: {state_summary}"
             )
         )
-        triage_result = state.get("triage_result")
-        summary = (
-            f"User message: {state['message_ctx'].content}\n"
-            f"Moderation result: {state['moderation_flag'].model_dump()}\n"
-            + (f"Triage result: {triage_result.model_dump()}" if triage_result else "")
-        )
-        result = llm.invoke([system, HumanMessage(content=summary)])
+        result = llm.invoke([system] + list(state["messages"]))
         return {"response": result.content}
 
 
