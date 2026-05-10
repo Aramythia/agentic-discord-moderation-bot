@@ -1,5 +1,6 @@
 from typing import Literal
 
+from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, START, END
@@ -7,6 +8,7 @@ from langgraph.graph.state import CompiledStateGraph
 
 from agentic_discord_moderation_bot.utils.state import BasicBotState
 from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDecision
+from agentic_discord_moderation_bot.utils.tools import ddg_tool, wikipedia_query_tool
 
 
 # Functions
@@ -32,6 +34,17 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
     """
     moderation_llm = llm.with_structured_output(ModerationFlag)
     triage_llm = llm.with_structured_output(TriageDecision)
+    questions_agent = create_agent(
+            llm,
+            tools=[ddg_tool, wikipedia_query_tool],
+            system_prompt=(
+                "You are a helpful assistant tasked with answering general questions. "
+                "Provide concise and accurate responses, using tools when necessary. "
+                "You have a tool to search Wikipedia for factual information, "
+                "and a tool to perform DuckDuckGo searches for current information. "
+                "Limit answers to generally 30 words, up to 80 if the answer is complex."
+            )
+        )
 
 
     def moderation_check(state: BasicBotState) -> BasicBotState:
@@ -71,10 +84,13 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
         )
         return {"triage_result": result}
 
-    def route_triage(state: BasicBotState) -> Literal["synthesize_response", "__end__"]:
-        if state["triage_result"].path == "none" or state["triage_result"].confidence < 0.75:
-            return "__end__"
-        return "synthesize_response"
+    def route_triage(state: BasicBotState) -> Literal["analyze_question", "synthesize_response", "__end__"]:
+        result = state["triage_result"]
+        if result.path == "none" or result.confidence < 0.75:
+            return END
+        if result.path == "question":
+            return "analyze_question"
+        return "synthesize_response"  # moderation_command
 
 
     def synthesize_response(state: BasicBotState) -> BasicBotState:
@@ -100,11 +116,13 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
 
     builder.add_node("moderation_check", moderation_check)
     builder.add_node("triage", triage)
+    builder.add_node("analyze_question", questions_agent)
     builder.add_node("synthesize_response", synthesize_response)
 
     builder.add_edge(START, "moderation_check")
     builder.add_conditional_edges("moderation_check", route_moderation)
     builder.add_conditional_edges("triage", route_triage)
+    builder.add_edge("analyze_question", "synthesize_response")
     builder.add_edge("synthesize_response", END)
 
     return builder.compile()
