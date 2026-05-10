@@ -20,13 +20,15 @@ from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDec
 # synthesize_response - generates a response to the user based on the current state
 
 
-def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
+def create_graph(llm: BaseChatModel, checkpointer=None) -> CompiledStateGraph:
     """Build and compile the moderation graph with the given LLM.
 
     Parameters
     ----------
     llm : BaseChatModel
         The chat model to use in graph nodes.
+    checkpointer : optional
+        An optional checkpointer to save and load graph state.
 
     Returns
     -------
@@ -126,4 +128,4 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
     builder.add_edge("analyze_question", "synthesize_response")
     builder.add_edge("synthesize_response", END)
 
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
