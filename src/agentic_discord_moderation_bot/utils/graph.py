@@ -6,6 +6,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_tavily import TavilySearch
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph
 
@@ -23,10 +24,7 @@ from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDec
 
 def create_graph(llm: BaseChatModel, checkpointer: MemorySaver | None = None) -> CompiledStateGraph:
     if checkpointer is None:
-        checkpointer = MemorySaver(allowed_msgpack_modules=[
-            ("agentic_discord_moderation_bot.utils.model", "ModerationFlag"),
-            ("agentic_discord_moderation_bot.utils.model", "TriageDecision"),
-        ])
+        checkpointer = MemorySaver(serde=JsonPlusSerializer())
     """Build and compile the moderation graph with the given LLM.
 
     Parameters
