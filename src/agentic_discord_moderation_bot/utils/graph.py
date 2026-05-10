@@ -9,7 +9,6 @@ from langgraph.graph.state import CompiledStateGraph
 
 from agentic_discord_moderation_bot.utils.state import BasicBotState
 from agentic_discord_moderation_bot.utils.model import ModerationFlag, TriageDecision
-from agentic_discord_moderation_bot.utils.tools import wikipedia_query_tool
 
 
 # Functions
@@ -37,18 +36,17 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
     triage_llm = llm.with_structured_output(TriageDecision)
     questions_agent = create_agent(
             llm,
-            tools=[TavilySearch(max_results=3), wikipedia_query_tool],
+            tools=[TavilySearch(max_results=3, include_answer=True)],
             system_prompt=(
                 "You are a helpful assistant tasked with answering general questions. "
                 "Provide concise and accurate responses, using tools when necessary. "
-                "You have a tool to search Wikipedia for factual information, "
-                "and a tool to perform DuckDuckGo searches for current information. "
+                "Use Tavily search to find current or factual information. "
                 "Limit answers to generally 30 words, up to 80 if the answer is complex."
             )
         )
 
 
-    def moderation_check(state: BasicBotState) -> BasicBotState:
+    async def moderation_check(state: BasicBotState) -> BasicBotState:
         message_content = state["message_ctx"].content
         system = SystemMessage(
             content=(
@@ -57,7 +55,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
                 "Provide a structured output with the verdict, reason, and confidence score."
             )
         )
-        result: ModerationFlag = moderation_llm.invoke([system, HumanMessage(content=message_content)])
+        result: ModerationFlag = await moderation_llm.ainvoke([system, HumanMessage(content=message_content)])
         return {"moderation_flag": result}
     
     def route_moderation(state: BasicBotState) -> Literal["triage", "synthesize_response"]:
@@ -65,7 +63,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
         return "synthesize_response" if flag.verdict == "flagged" else "triage"
 
 
-    def triage(state: BasicBotState) -> dict:
+    async def triage(state: BasicBotState) -> dict:
         system = SystemMessage(
             content=(
                 "You are a Discord bot assistant named Ganyu. A message has passed moderation and needs routing. "
@@ -80,7 +78,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
                 "A command is an instruction for moderation action e.g. kicking, warning, timeout, ban, delete message, etc."
             )
         )
-        result: TriageDecision = triage_llm.invoke(
+        result: TriageDecision = await triage_llm.ainvoke(
             [system, HumanMessage(content=state["message_ctx"].content)]
         )
         return {"triage_result": result}
@@ -94,7 +92,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
         return "synthesize_response"  # moderation_command
 
 
-    def synthesize_response(state: BasicBotState) -> BasicBotState:
+    async def synthesize_response(state: BasicBotState) -> BasicBotState:
         state_summary = {
             k: (v.model_dump() if hasattr(v, "model_dump") else v)
             for k, v in state.items()
@@ -110,7 +108,7 @@ def create_graph(llm: BaseChatModel) -> CompiledStateGraph:
                 f"State: {state_summary}"
             )
         )
-        result = llm.invoke([system] + list(state["messages"]))
+        result = await llm.ainvoke([system] + list(state["messages"]))
         return {"response": result.content}
 
 
